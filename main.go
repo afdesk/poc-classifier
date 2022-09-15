@@ -17,7 +17,9 @@ var cf *classifier.Classifier
 type LicenseFinding string
 
 func handleAllLicenses() {
-	const folder = "./licenses"
+	//const folder = "./licenses"
+	const folder = "perl-licenses"
+
 	files, err := ioutil.ReadDir(folder)
 	if err != nil {
 		log.Fatalf("can't ReadDir %q. error: %v", folder, err)
