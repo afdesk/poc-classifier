@@ -2,8 +2,10 @@ package main
 
 import (
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"runtime/pprof"
 
 	classifier "github.com/google/licenseclassifier/v2"
@@ -12,6 +14,24 @@ import (
 
 var cf *classifier.Classifier
 
+type LicenseFinding string
+
+func handleAllLicenses() {
+	const folder = "./licenses"
+	files, err := ioutil.ReadDir(folder)
+	if err != nil {
+		log.Fatalf("can't ReadDir %q. error: %v", folder, err)
+	}
+	for _, f := range files {
+		lic, err := os.Open(path.Join(folder, f.Name()))
+		if err != nil {
+			log.Printf("[ERROR] can't open %q: %v", f.Name(), err)
+			continue
+		}
+		Classify(lic)
+	}
+}
+
 func main() {
 	var err error
 	cf, err = assets.DefaultClassifier()
@@ -19,8 +39,9 @@ func main() {
 		panic("assets.DefaultClassifier: " + err.Error())
 	}
 
-	lic, err := os.Open("./licenses/libssl1.1")
-	Classify(lic)
+	// lic, err := os.Open("./licenses/libssl1.1")
+	// Classify(lic)
+	handleAllLicenses()
 
 	fMem, err := os.Create("mem.profile")
 	if err != nil {
@@ -31,8 +52,6 @@ func main() {
 		panic("could not write memory profile: " + err.Error())
 	}
 }
-
-type LicenseFinding string
 
 // Classify uses a single classifier to detect and classify the license found in a file
 func Classify(r io.Reader) {
